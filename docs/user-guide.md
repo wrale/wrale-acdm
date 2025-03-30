@@ -15,13 +15,14 @@
    cd wrale-acdm
    ```
 
-2. Build the project:
+2. Using Make (recommended):
    ```bash
-   cargo build --release
+   make install
    ```
 
-3. Install the binary:
+3. Or manual installation:
    ```bash
+   cargo build --release
    cargo install --path .
    ```
 
@@ -31,6 +32,14 @@
    ```
 
 ## Usage Guide
+
+### Global Flags
+
+The following flags can be used with any command:
+
+- `--quiet`: Suppress verbose logging, showing only warnings and errors
+- `--force`: Skip confirmation prompts and proceed with potentially destructive operations
+- `--config <path>`: Specify a custom path to the configuration file (default: `acdm.toml`)
 
 ### Initializing a Project
 
@@ -57,6 +66,10 @@ acdm add git@github.com:example/repo.git --name example-dep --target vendor/exam
 Optional parameters:
 - `--rev`: Specify a branch, tag, or commit (defaults to "main")
 
+Notes:
+- This command will fail if your git repository has uncommitted changes
+- Use `--force` to bypass git status checks (not recommended)
+
 ### Including Specific Paths
 
 By default, the entire repository will be included. To select specific paths:
@@ -70,6 +83,10 @@ The paths use glob patterns, supporting:
 - `**`: Matches any sequence of characters including directory separators
 - `?`: Matches any single non-separator character
 - `[...]`: Matches any character in the brackets
+
+Notes:
+- This command will fail if your git repository has uncommitted changes
+- Use `--force` to bypass git status checks (not recommended)
 
 ### Updating Dependencies
 
@@ -90,6 +107,11 @@ Automatically commit changes:
 ```bash
 acdm update --message "Update external dependencies"
 ```
+
+Notes:
+- By default, you will be prompted to confirm before mount points are purged
+- Use `--force` to skip the confirmation prompt
+- This command will fail if your git repository has uncommitted changes
 
 ## Configuration Reference
 
@@ -118,6 +140,38 @@ sparse_paths = [
 target = "vendor/example"
 ```
 
+## Logging and Debugging
+
+`acdm` provides detailed logging to help debug issues. By default, verbose output is enabled.
+
+- Use `--quiet` to suppress verbose logging
+- Alternatively, set the `RUST_LOG` environment variable to control the log level:
+
+```bash
+# Show only warnings and errors
+RUST_LOG=warn acdm update
+
+# Show detailed debug information
+RUST_LOG=debug acdm update
+
+# Show trace-level information (very verbose)
+RUST_LOG=trace acdm update
+```
+
+## Safety Features
+
+`acdm` implements several safety features to protect your repository:
+
+1. **Git Status Check**: Operations will fail if your git repository has uncommitted changes, ensuring a clean state before making modifications.
+
+2. **Mount Point Confirmation**: Before purging mount points during updates, you'll be prompted to confirm the operation.
+
+3. **Atomic Operations**: All changes are staged together, ensuring consistent updates.
+
+4. **Verbose Logging**: Detailed logs help troubleshoot issues and understand what's happening.
+
+These safety features can be bypassed with the `--force` flag when necessary, but this should be used with caution.
+
 ## Best Practices
 
 1. **Pin to specific commits**: Use commit hashes instead of branch names for stable dependencies.
@@ -128,32 +182,38 @@ target = "vendor/example"
 
 4. **Document dependencies**: Include a README explaining where vendored content comes from.
 
-5. **Use atomic updates**: Update all dependencies at once to ensure consistency.
+5. **Keep a clean git repository**: Commit your changes before running `acdm` operations.
 
-6. **Version lock**: Update dependencies deliberately, not automatically.
+6. **Use atomic updates**: Update all dependencies at once to ensure consistency.
+
+7. **Version lock**: Update dependencies deliberately, not automatically.
+
+8. **Review before committing**: After updates, review the changes before committing them.
 
 ## Troubleshooting
 
 ### Common Issues
 
-1. **Authentication Failures**:
+1. **Operation fails with "Git repository has uncommitted changes"**:
+   - Commit or stash your changes before running `acdm` operations
+   - Use `--force` to bypass this check (not recommended)
+
+2. **Authentication Failures**:
    - For SSH: Ensure your SSH key is registered with the Git provider
    - For HTTPS: Check your credentials or tokens
 
-2. **No files extracted**:
+3. **No files extracted**:
    - Verify your include patterns match files in the repository
    - Check that the revision exists in the remote repository
+   - Use verbose logging to see what's happening
 
-3. **Permission Denied**:
+4. **Permission Denied**:
    - Ensure you have write permissions to the target directory
 
-### Debugging
-
-For detailed logging, set the `RUST_LOG` environment variable:
-
-```bash
-RUST_LOG=debug acdm update
-```
+5. **Update Errors**:
+   - Check if the target directory exists and has correct permissions
+   - Verify that the source repository is accessible
+   - Run with verbose logging to see detailed error information
 
 ---
 

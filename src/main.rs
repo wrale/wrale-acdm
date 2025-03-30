@@ -1,5 +1,6 @@
 // Copyright (c) 2025 Wrale LTD <contact@wrale.com>
 
+use log::error;
 use std::process;
 
 mod application;
@@ -9,13 +10,11 @@ mod infrastructure;
 mod interfaces;
 
 fn main() {
-    // Initialize logging
-    env_logger::init();
-    
     // Run the CLI application
     match cli::run() {
         Ok(_) => process::exit(0),
         Err(err) => {
+            error!("Error: {}", err);
             eprintln!("Error: {}", err);
             process::exit(1);
         }

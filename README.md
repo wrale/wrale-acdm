@@ -15,6 +15,9 @@ Wrale Agnostic Content Dependency Manager
 - **Clean Git History**: Changes to vendored content appear as normal changes in your repository
 - **Multiple Protocol Support**: Clone via SSH and HTTPS with appropriate authentication
 - **Atomic Operations**: All content updates happen in a single atomic commit
+- **Safe Operations**: Verifies clean git status before making changes
+- **Interactive Workflow**: Prompts before potentially destructive actions (can be bypassed with --force)
+- **Verbose Logging**: Detailed logging for debugging (can be disabled with --quiet)
 
 ## Installation
 
@@ -29,6 +32,14 @@ or
 git clone https://github.com/wrale/wrale-acdm.git
 cd wrale-acdm
 cargo install --path .
+```
+
+Alternatively, using the provided Makefile:
+
+```bash
+git clone https://github.com/wrale/wrale-acdm.git
+cd wrale-acdm
+make install
 ```
 
 ## Quick Start
@@ -56,6 +67,14 @@ Update all dependencies:
 ```bash
 acdm update
 ```
+
+## Global Flags
+
+The following flags can be used with any command:
+
+- `--quiet`: Suppress verbose logging, showing only warnings and errors
+- `--force`: Skip confirmation prompts and proceed with potentially destructive operations
+- `--config <path>`: Specify a custom path to the configuration file (default: `acdm.toml`)
 
 ## Configuration
 
@@ -87,7 +106,27 @@ Building from source:
 ```bash
 git clone https://github.com/wrale/wrale-acdm.git
 cd wrale-acdm
-cargo build --release
+make build
+```
+
+Running tests:
+
+```bash
+make test       # Run all tests
+make unit       # Run unit tests only
+make integration # Run integration tests only
+```
+
+Preparing for a commit:
+
+```bash
+make prepare    # Formats code, runs linter, checks, tests, and generates docs
+```
+
+See all available commands:
+
+```bash
+make help
 ```
 
 ## License
