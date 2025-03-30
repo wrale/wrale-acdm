@@ -1,8 +1,7 @@
 // Copyright (c) 2025 Wrale LTD <contact@wrale.com>
 
 use assert_cmd::Command;
-use std::fs;
-use std::path::PathBuf;
+
 use tempfile::tempdir;
 
 #[test]

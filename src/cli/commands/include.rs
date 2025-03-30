@@ -15,6 +15,10 @@ pub struct IncludeCommand {
 
     /// Paths to include
     paths: Vec<String>,
+
+    /// Skip automatically committing changes
+    #[clap(long)]
+    skip_commit: bool,
 }
 
 impl IncludeCommand {
@@ -24,7 +28,12 @@ impl IncludeCommand {
         debug!("Force mode: {}", force);
 
         let adapter = CliAdapter::new(config_path.to_path_buf());
-        adapter.include_paths(self.dependency_name.clone(), self.paths.clone())?;
+        adapter.include_paths(
+            self.dependency_name.clone(),
+            self.paths.clone(),
+            self.skip_commit,
+            force,
+        )?;
 
         info!("Paths included successfully");
         Ok(())

@@ -105,22 +105,25 @@ where
         repo_root: &Path,
         commit_message: Option<&str>,
         _force: bool, // Unused but necessary for API compatibility
+        skip_commit: bool,
     ) -> Result<(), DomainError> {
         // Update each dependency
         for dependency in dependencies {
             self.dependency_updater.update(dependency, repo_root)?;
         }
 
-        // Commit changes if a commit message is provided and we're in a git repository
-        if let Some(message) = commit_message {
-            if self
-                .dependency_updater
-                .git_operations
-                .is_git_repository(repo_root)?
-            {
-                self.dependency_updater
+        // Commit changes if a commit message is provided, we're not skipping commits, and we're in a git repository
+        if !skip_commit {
+            if let Some(message) = commit_message {
+                if self
+                    .dependency_updater
                     .git_operations
-                    .commit(repo_root, message)?;
+                    .is_git_repository(repo_root)?
+                {
+                    self.dependency_updater
+                        .git_operations
+                        .commit(repo_root, message)?;
+                }
             }
         }
 

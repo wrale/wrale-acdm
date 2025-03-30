@@ -1,8 +1,8 @@
 // Copyright (c) 2025 Wrale LTD <contact@wrale.com>
 
-use anyhow::{anyhow, Result};
+use anyhow::Result;
 use clap::Args;
-use log::{debug, info, warn};
+use log::{debug, info};
 use std::path::Path;
 
 use crate::interfaces::cli::CliAdapter;

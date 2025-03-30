@@ -215,6 +215,7 @@ where
                 repo_root,
                 dto.commit_message.as_deref(),
                 dto.force,
+                dto.skip_commit,
             )
             .map_err(|e| anyhow::anyhow!("Failed to update dependencies: {}", e))?;
 
