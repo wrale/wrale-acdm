@@ -1,6 +1,6 @@
 [package]
 name = "wrale-acdm"
-version = "0.2.0"
+version = "0.2.1"
 edition = "2021"
 description = "Wrale Agnostic Content Dependency Manager"
 authors = ["Wrale LTD <contact@wrale.com>"]

@@ -6,6 +6,15 @@
 
 - Rust 1.70 or higher
 - Git 2.25 or higher (for sparse checkout features)
+- macOS operating system (currently only officially supported on macOS, specifically M1 MacBook Air)
+
+### Installation from crates.io
+
+Once published, you can install directly from crates.io:
+
+```bash
+cargo install wrale-acdm
+```
 
 ### Installation from Source
 
@@ -30,6 +39,12 @@
    ```bash
    acdm --version
    ```
+
+## Platform Support
+
+Currently, `wrale-acdm` is only officially supported on macOS. While it may work on other platforms when built from source, these are not officially supported yet. The tool has been primarily tested on M1 MacBook Air.
+
+If you're interested in helping maintain support for other platforms, contributions are welcome!
 
 ## Usage Guide
 
@@ -219,6 +234,10 @@ Note: Unlike previous versions, `acdm` will not automatically stage or commit an
    - Check if the target directory exists and has correct permissions
    - Verify that the source repository is accessible
    - Run with verbose logging to see detailed error information
+
+6. **Platform-Specific Issues**:
+   - If you're using a platform other than macOS, be aware that this is experimental
+   - Report any platform-specific issues on GitHub
 
 ---
 
