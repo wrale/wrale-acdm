@@ -2,7 +2,6 @@
 
 [![Build Status](https://img.shields.io/github/actions/workflow/status/wrale/wrale-acdm/ci.yml?branch=main)](https://github.com/wrale/wrale-acdm/actions/workflows/ci.yml)
 [![Crates.io](https://img.shields.io/crates/v/wrale-acdm)](https://crates.io/crates/wrale-acdm)
-[![License](https://img.shields.io/crates/l/wrale-acdm)](https://github.com/wrale/wrale-acdm/blob/main/LICENSE)
 [![Minimum Rust Version](https://img.shields.io/badge/rust-1.70%2B-orange)](https://www.rust-lang.org/)
 [![Deps.rs](https://deps.rs/repo/github/wrale/wrale-acdm/status.svg)](https://deps.rs/repo/github/wrale/wrale-acdm)
 
