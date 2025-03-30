@@ -19,15 +19,37 @@ impl<C: ConfigurationRepository> GetDependencyStatusQuery<C> {
 
     /// Get the status of all dependencies
     pub fn get_all_statuses(&self, config_path: &Path) -> Result<Vec<DependencyStatusDto>> {
+        // Convert the config_path to an absolute path if it's relative
+        let absolute_config_path = if config_path.is_absolute() {
+            config_path.to_path_buf()
+        } else {
+            // Join with current directory to get absolute path
+            std::env::current_dir()
+                .map_err(|e| {
+                    DomainError::ConfigurationError(
+                        format!("Failed to get current directory: {}", e).into(),
+                    )
+                })?
+                .join(config_path)
+        };
+
         // Load the configuration
         let config = self
             .config_repo
-            .load(config_path)
+            .load(&absolute_config_path)
             .context("Failed to load configuration")?;
 
-        let repo_root = config_path.parent().ok_or_else(|| {
-            DomainError::ConfigurationError("Failed to determine repository root".into())
-        })?;
+        // Get the repository root - if we have a parent directory, use it, otherwise use the current directory
+        let repo_root = if let Some(parent) = absolute_config_path.parent() {
+            parent.to_path_buf()
+        } else {
+            // This should rarely happen with absolute paths, but handle it anyway
+            std::env::current_dir().map_err(|e| {
+                DomainError::ConfigurationError(
+                    format!("Failed to get current directory: {}", e).into(),
+                )
+            })?
+        };
 
         // Create status DTOs for each dependency
         let mut statuses = Vec::new();
