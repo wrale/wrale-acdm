@@ -21,12 +21,14 @@ Wrale Agnostic Content Dependency Manager
 
 ## Installation
 
+> ⚠️ **Platform Support**: Currently, `wrale-acdm` is only officially supported on macOS (specifically tested on M1 MacBook Air). While it may work on other platforms when built from source, these are not officially supported yet. Contributions for other platforms are welcome!
+
 ```bash
-# Not yet available on crates.io
-cargo install --git https://github.com/wrale/wrale-acdm.git
+# Install from crates.io
+cargo install wrale-acdm
 ```
 
-or
+or install from source:
 
 ```bash
 git clone https://github.com/wrale/wrale-acdm.git
@@ -109,6 +111,7 @@ target = "vendor/example"
 Requirements:
 - Rust 1.70+
 - Git 2.25+ (for sparse checkout features)
+- macOS for primary development and testing
 
 Building from source:
 
@@ -140,7 +143,7 @@ make help
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+This project is licensed under the MIT License - see the LICENSE file for details. Copyright information is available in the NOTICE file.
 
 ---
 
