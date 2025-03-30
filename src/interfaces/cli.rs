@@ -59,22 +59,40 @@ impl CliAdapter {
         repository_url: String,
         revision: String,
         target_location: String,
+        skip_commit: bool,
+        force: bool,
     ) -> Result<()> {
         debug!(
-            "Adding dependency: name={}, url={}, rev={}, target={}",
-            name, repository_url, revision, target_location
+            "Adding dependency: name={}, url={}, rev={}, target={}, skip_commit={}",
+            name, repository_url, revision, target_location, skip_commit
         );
 
         // Create Git operations and verify clean status
         let git_operations = GitOperationsImpl::new();
-        let parent_dir = self
-            .config_path
-            .parent()
-            .ok_or_else(|| anyhow!("Could not determine parent directory"))?;
 
-        if let Err(e) = self.ensure_clean_git_status(&git_operations, parent_dir) {
-            warn!("Git repository status is not clean: {}", e);
-            return Err(e);
+        // Get the repository root - if we have a parent directory, use it, otherwise use the current directory
+        let repo_root = if let Some(parent) = self.config_path.parent() {
+            // If parent is empty, use current directory
+            if parent.as_os_str().is_empty() {
+                std::env::current_dir()
+                    .map_err(|e| anyhow!("Failed to get current directory: {}", e))?
+            } else {
+                parent.to_path_buf()
+            }
+        } else {
+            // No parent means the config is in the current directory
+            std::env::current_dir()
+                .map_err(|e| anyhow!("Failed to get current directory: {}", e))?
+        };
+
+        debug!("Using repository root path: {}", repo_root.display());
+
+        // Skip this check if force is enabled
+        if !force {
+            if let Err(e) = self.ensure_clean_git_status(&git_operations, &repo_root) {
+                warn!("Git repository status is not clean: {}", e);
+                return Err(e);
+            }
         }
 
         let config_repo = TomlConfigurationRepository::new();
@@ -84,33 +102,67 @@ impl CliAdapter {
             .execute(
                 &self.config_path,
                 AddDependencyDto {
-                    name,
+                    name: name.clone(),
                     repository_url,
                     revision,
                     repository_type: "git".to_string(),
                     target_location,
                 },
             )
-            .context("Failed to add dependency")
+            .context("Failed to add dependency")?;
+
+        // Auto-commit changes if not skipping
+        if !skip_commit {
+            // Use the same repo_root we already determined
+            // Auto-commit if in a git repository
+            if git_operations.is_git_repository(&repo_root)? {
+                git_operations.commit(&repo_root, &format!("Add dependency '{}'", name))?;
+                info!("Changes committed successfully");
+            }
+        }
+
+        Ok(())
     }
 
     /// Include paths in a dependency
-    pub fn include_paths(&self, dependency_name: String, paths: Vec<String>) -> Result<()> {
+    pub fn include_paths(
+        &self,
+        dependency_name: String,
+        paths: Vec<String>,
+        skip_commit: bool,
+        force: bool,
+    ) -> Result<()> {
         debug!(
-            "Including paths for dependency: {}, paths: {:?}",
-            dependency_name, paths
+            "Including paths for dependency: {}, paths: {:?}, skip_commit={}",
+            dependency_name, paths, skip_commit
         );
 
         // Create Git operations and verify clean status
         let git_operations = GitOperationsImpl::new();
-        let parent_dir = self
-            .config_path
-            .parent()
-            .ok_or_else(|| anyhow!("Could not determine parent directory"))?;
 
-        if let Err(e) = self.ensure_clean_git_status(&git_operations, parent_dir) {
-            warn!("Git repository status is not clean: {}", e);
-            return Err(e);
+        // Get the repository root - if we have a parent directory, use it, otherwise use the current directory
+        let repo_root = if let Some(parent) = self.config_path.parent() {
+            // If parent is empty, use current directory
+            if parent.as_os_str().is_empty() {
+                std::env::current_dir()
+                    .map_err(|e| anyhow!("Failed to get current directory: {}", e))?
+            } else {
+                parent.to_path_buf()
+            }
+        } else {
+            // No parent means the config is in the current directory
+            std::env::current_dir()
+                .map_err(|e| anyhow!("Failed to get current directory: {}", e))?
+        };
+
+        debug!("Using repository root path: {}", repo_root.display());
+
+        // Skip this check if force is enabled
+        if !force {
+            if let Err(e) = self.ensure_clean_git_status(&git_operations, &repo_root) {
+                warn!("Git repository status is not clean: {}", e);
+                return Err(e);
+            }
         }
 
         let config_repo = TomlConfigurationRepository::new();
@@ -120,11 +172,34 @@ impl CliAdapter {
             .execute(
                 &self.config_path,
                 IncludePathsDto {
-                    dependency_name,
-                    paths,
+                    dependency_name: dependency_name.clone(),
+                    paths: paths.clone(),
                 },
             )
-            .context("Failed to include paths")
+            .context("Failed to include paths")?;
+
+        // Auto-commit changes if not skipping
+        if !skip_commit {
+            // Auto-commit if in a git repository - use the same repo_root we already determined
+            if git_operations.is_git_repository(&repo_root)? {
+                let paths_summary = if paths.len() <= 2 {
+                    paths.join(", ")
+                } else {
+                    format!("{} paths", paths.len())
+                };
+
+                git_operations.commit(
+                    &repo_root,
+                    &format!(
+                        "Include {} in dependency '{}'",
+                        paths_summary, dependency_name
+                    ),
+                )?;
+                info!("Changes committed successfully");
+            }
+        }
+
+        Ok(())
     }
 
     /// Update dependencies
@@ -133,10 +208,11 @@ impl CliAdapter {
         dependencies: Option<Vec<String>>,
         commit_message: Option<String>,
         force: bool,
+        skip_commit: bool,
     ) -> Result<()> {
         debug!(
-            "Updating dependencies: {:?}, commit_message: {:?}, force: {}",
-            dependencies, commit_message, force
+            "Updating dependencies: {:?}, commit_message: {:?}, force: {}, skip_commit: {}",
+            dependencies, commit_message, force, skip_commit
         );
 
         // Create required components
@@ -145,16 +221,29 @@ impl CliAdapter {
         let file_system_manager = FileSystemManagerImpl::new();
         let git_operations = GitOperationsImpl::new();
 
-        // Get the repository root
-        let repo_root = self
-            .config_path
-            .parent()
-            .ok_or_else(|| anyhow!("Could not determine parent directory"))?;
+        // Get the repository root - if we have a parent directory, use it, otherwise use the current directory
+        let repo_root = if let Some(parent) = self.config_path.parent() {
+            // If parent is empty, use current directory
+            if parent.as_os_str().is_empty() {
+                std::env::current_dir()
+                    .map_err(|e| anyhow!("Failed to get current directory: {}", e))?
+            } else {
+                parent.to_path_buf()
+            }
+        } else {
+            // No parent means the config is in the current directory
+            std::env::current_dir()
+                .map_err(|e| anyhow!("Failed to get current directory: {}", e))?
+        };
 
-        // Verify Git status
-        if let Err(e) = self.ensure_clean_git_status(&git_operations, repo_root) {
-            warn!("Git repository status is not clean: {}", e);
-            return Err(e);
+        debug!("Using repository root path: {}", repo_root.display());
+
+        // Verify Git status if not in force mode
+        if !force {
+            if let Err(e) = self.ensure_clean_git_status(&git_operations, &repo_root) {
+                warn!("Git repository status is not clean: {}", e);
+                return Err(e);
+            }
         }
 
         // Load configuration and determine what will be updated
@@ -209,8 +298,9 @@ impl CliAdapter {
             .execute(UpdateDependenciesDto {
                 config_path: self.config_path.clone(),
                 dependencies: dependencies.clone(),
-                commit_message,
+                commit_message: if skip_commit { None } else { commit_message },
                 force,
+                skip_commit,
             })
             .context("Failed to update dependencies")
     }

@@ -24,6 +24,10 @@ pub struct AddCommand {
     /// Target location for the dependency
     #[clap(long)]
     target: String,
+
+    /// Skip automatically committing changes
+    #[clap(long)]
+    skip_commit: bool,
 }
 
 impl AddCommand {
@@ -41,6 +45,8 @@ impl AddCommand {
             self.repository_url.clone(),
             self.rev.clone(),
             self.target.clone(),
+            self.skip_commit,
+            force,
         )?;
 
         info!("Dependency added successfully");

@@ -43,6 +43,27 @@ impl GitOperations for GitOperationsImpl {
     }
 
     fn commit(&self, repo_path: &Path, message: &str) -> Result<(), DomainError> {
+        debug!("Attempting to commit with message: '{}'", message);
+
+        // First, check if there are any changes to commit
+        let status_result = self.get_status(repo_path)?;
+        if !status_result.has_staged_changes
+            && !status_result.has_unstaged_changes
+            && !status_result.has_untracked_files
+        {
+            debug!("Nothing to commit - repository is clean");
+            return Ok(());
+        }
+
+        // Stage any changes if needed
+        if !status_result.has_staged_changes
+            && (status_result.has_unstaged_changes || status_result.has_untracked_files)
+        {
+            debug!("Staging changes before commit");
+            self.stage_all(repo_path)?;
+        }
+
+        // Now try to commit
         let output = Command::new("git")
             .arg("commit")
             .arg("-m")
@@ -57,16 +78,18 @@ impl GitOperations for GitOperationsImpl {
             let stdout = String::from_utf8_lossy(&output.stdout);
 
             if stderr.contains("nothing to commit") || stdout.contains("nothing to commit") {
-                // This is not an error, just nothing to commit
+                debug!("Git reported nothing to commit");
                 return Ok(());
             }
 
+            error!("Git commit failed: {}", stderr);
             return Err(DomainError::GitError(format!(
                 "Git commit command failed: {}",
                 stderr
             )));
         }
 
+        debug!("Commit successful");
         Ok(())
     }
 

@@ -29,6 +29,7 @@ pub struct UpdateDependenciesDto {
     pub dependencies: Option<Vec<String>>,
     pub commit_message: Option<String>,
     pub force: bool,
+    pub skip_commit: bool,
 }
 
 /// DTO for dependency status
