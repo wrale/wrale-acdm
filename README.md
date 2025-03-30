@@ -1,5 +1,11 @@
 # wrale-acdm
 
+[![Build Status](https://img.shields.io/github/actions/workflow/status/wrale/wrale-acdm/ci.yml?branch=main)](https://github.com/wrale/wrale-acdm/actions/workflows/ci.yml)
+[![Crates.io](https://img.shields.io/crates/v/wrale-acdm)](https://crates.io/crates/wrale-acdm)
+[![License](https://img.shields.io/crates/l/wrale-acdm)](https://github.com/wrale/wrale-acdm/blob/main/LICENSE)
+[![Minimum Rust Version](https://img.shields.io/badge/rust-1.70%2B-orange)](https://www.rust-lang.org/)
+[![Deps.rs](https://deps.rs/repo/github/wrale/wrale-acdm/status.svg)](https://deps.rs/repo/github/wrale/wrale-acdm)
+
 Wrale Agnostic Content Dependency Manager
 
 ## Overview
@@ -144,6 +150,10 @@ make help
 ## License
 
 This project is licensed under the MIT License - see the LICENSE file for details. Copyright information is available in the NOTICE file.
+
+## Tags
+
+`rust` `dependency-management` `git` `vendoring` `content-management` `submodules` `monorepo` `package-manager` `selective-checkout` `sparse-checkout`
 
 ---
 
