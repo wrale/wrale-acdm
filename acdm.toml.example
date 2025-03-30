@@ -1,0 +1,35 @@
+# Example configuration for wrale-acdm
+# Save this as acdm.toml to use it
+
+# Default location for vendored content (optional)
+location = "vendor/external"
+
+# Define external dependencies
+[[sources]]
+# Repository URL (SSH or HTTPS)
+repo = "git@github.com:example/repo.git"
+# Name for the dependency
+name = "example-dependency"
+# Git revision (branch, tag, or commit)
+rev = "main"
+# Repository type (currently only 'git' is supported)
+type = "git"
+# Patterns for selective inclusion
+sparse_paths = [
+    "docs/specification/**",
+    "schema/**"
+]
+# Target location in your project
+target = "vendor/example"
+
+# You can define multiple dependencies
+[[sources]]
+repo = "https://github.com/another/repo.git"
+name = "another-dependency"
+rev = "v1.0.0"
+type = "git"
+sparse_paths = [
+    "src/lib/**",
+    "include/**"
+]
+target = "vendor/another"
