@@ -14,7 +14,7 @@ Wrale Agnostic Content Dependency Manager
 - **Version Locking**: Pin dependencies to specific commits, branches, or tags
 - **Clean Git History**: Changes to vendored content appear as normal changes in your repository
 - **Multiple Protocol Support**: Clone via SSH and HTTPS with appropriate authentication
-- **Atomic Operations**: All content updates happen in a single atomic commit
+- **Git-Aware Operations**: Operates only within clean Git repositories
 - **Safe Operations**: Verifies clean git status before making changes
 - **Interactive Workflow**: Prompts before potentially destructive actions (can be bypassed with --force)
 - **Verbose Logging**: Detailed logging for debugging (can be disabled with --quiet)
@@ -67,6 +67,15 @@ Update all dependencies:
 ```bash
 acdm update
 ```
+
+After running any command that modifies files, you'll need to review and commit the changes manually:
+
+```bash
+git add .
+git commit -m "Update external dependencies"
+```
+
+Note: `acdm` requires a clean git repository to perform updates. It will not automatically commit changes.
 
 ## Global Flags
 

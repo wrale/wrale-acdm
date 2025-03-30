@@ -102,10 +102,11 @@ Update specific dependencies:
 acdm update dep1 dep2
 ```
 
-Automatically commit changes:
+After updating dependencies, you'll need to review and commit the changes manually:
 
 ```bash
-acdm update --message "Update external dependencies"
+git add .
+git commit -m "Update external dependencies"
 ```
 
 Notes:
@@ -162,15 +163,17 @@ RUST_LOG=trace acdm update
 
 `acdm` implements several safety features to protect your repository:
 
-1. **Git Status Check**: Operations will fail if your git repository has uncommitted changes, ensuring a clean state before making modifications.
+1. **Git Repository Requirement**: Operations will only run within a Git repository, ensuring you can track changes.
 
-2. **Mount Point Confirmation**: Before purging mount points during updates, you'll be prompted to confirm the operation.
+2. **Git Status Check**: Operations will fail if your Git repository has uncommitted changes, ensuring a clean state before making modifications.
 
-3. **Atomic Operations**: All changes are staged together, ensuring consistent updates.
+3. **Mount Point Confirmation**: Before purging mount points during updates, you'll be prompted to confirm the operation.
 
 4. **Verbose Logging**: Detailed logs help troubleshoot issues and understand what's happening.
 
-These safety features can be bypassed with the `--force` flag when necessary, but this should be used with caution.
+The mount point confirmation can be bypassed with the `--force` flag when necessary, but this should be used with caution.
+
+Note: Unlike previous versions, `acdm` will not automatically stage or commit any changes. After running operations that modify files, you'll need to stage and commit the changes manually.
 
 ## Best Practices
 
@@ -184,11 +187,13 @@ These safety features can be bypassed with the `--force` flag when necessary, bu
 
 5. **Keep a clean git repository**: Commit your changes before running `acdm` operations.
 
-6. **Use atomic updates**: Update all dependencies at once to ensure consistency.
+6. **Batch updates**: Update all dependencies at once to ensure consistency.
 
 7. **Version lock**: Update dependencies deliberately, not automatically.
 
-8. **Review before committing**: After updates, review the changes before committing them.
+8. **Review and commit manually**: After updates, review all changes and commit them manually.
+
+9. **Create atomic commits**: For cleaner history, commit dependency updates separately from your own code changes.
 
 ## Troubleshooting
 

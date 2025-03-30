@@ -18,7 +18,7 @@ Wrale Agnostic Content Dependency Manager
 - **Version Locking**: Pin dependencies to specific commits, branches, or tags
 - **Clean Git History**: Changes to vendored content appear as normal changes in your repository
 - **Multiple Protocol Support**: Clone via SSH and HTTPS with appropriate authentication
-- **Atomic Operations**: All content updates happen in a single atomic commit
+- **Git-Aware Operations**: Operates only within clean Git repositories
 - **Domain-Driven Design**: Clean architecture with proper separation of concerns for extensibility
 
 ## Core Concepts
@@ -67,9 +67,9 @@ Unlike Git submodules or tools that establish ongoing connections to external re
 2. Extract only the specified content based on sparse paths
 3. Clean the target mount point by removing all existing content (not using Git but native filesystem operations)
 4. Copy new content to the clean target location in your project
-5. Stage all changes (additions and removals) for Git
-6. Commit all changes in a single atomic transaction
-7. Clean up temporary data
+5. Clean up temporary data
+
+After these operations, the user needs to manually stage and commit the changes if they wish to persist them.
 
 This approach ensures your repository maintains a clean history without extra metadata or hidden connections to external repositories. The complete cleaning of the mount point (step 3) is crucial for maintaining the integrity of the dependency directory, ensuring a clean slate for each update without relying on git-specific commands.
 
@@ -90,7 +90,7 @@ While [Gitman](../git/gitman.md) offers similar functionality for selective dire
 - Truly zero submodule footprint, with content appearing as normal files
 - More focused feature set without symlinks or post-checkout scripts
 - Clean architecture design for extensibility
-- Atomic operations for content updates
+- Git-aware operations that respect repository state
 
 ## Development Rationale
 
@@ -140,8 +140,8 @@ A key aspect of the implementation is how content changes are handled:
 1. **Complete Mount Point Cleaning**: For each update, the entire target directory is completely cleared using OS-native operations
 2. **Filesystem Abstraction**: Directory removal operations are dependency-inverted to handle cross-OS differences
 3. **Clean Slate Approach**: Rather than tracking diffs, each update creates a pristine copy of the current dependency state
-4. **Conflict Detection**: Optional pre-cleaning checks for local modifications to vendored content
-5. **Atomic Transactions**: All changes are applied in a single Git transaction after filesystem operations are complete
+4. **Conflict Detection**: Pre-operation checks ensure the Git repository is in a clean state
+5. **Safe Operations**: The tool operates only when Git status is clean, preventing accidental overwrites of uncommitted changes
 
 Example of dependency inversion for directory cleaning:
 

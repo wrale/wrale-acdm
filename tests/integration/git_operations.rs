@@ -149,46 +149,4 @@ fn test_git_operations_status() {
     );
 }
 
-#[test]
-fn test_git_stage_and_commit() {
-    // Create a temporary directory for the test repository
-    let repo_dir = tempdir().expect("Failed to create temporary directory");
-
-    // Initialize git repository
-    init_git_repo(repo_dir.path());
-
-    // Create the GitOperationsImpl instance
-    let git_ops = GitOperationsImpl::new();
-
-    // Create a file
-    fs::write(repo_dir.path().join("test-file.txt"), "Test content")
-        .expect("Failed to create file");
-
-    // Stage all changes
-    git_ops
-        .stage_all(repo_dir.path())
-        .expect("Failed to stage changes");
-
-    // Check that changes are staged
-    let status = git_ops
-        .get_status(repo_dir.path())
-        .expect("Failed to get status");
-    assert!(
-        status.has_staged_changes,
-        "Expected status to show staged changes"
-    );
-
-    // Commit the changes
-    git_ops
-        .commit(repo_dir.path(), "Test commit")
-        .expect("Failed to commit changes");
-
-    // Check that the repository is clean after commit
-    let status = git_ops
-        .get_status(repo_dir.path())
-        .expect("Failed to get status");
-    assert!(
-        status.is_clean(),
-        "Expected clean repository status after commit"
-    );
-}
+// Note: test_git_stage_and_commit has been removed as we no longer support staging and committing
