@@ -27,11 +27,19 @@ impl CliAdapter {
     }
 
     /// Initialize a new configuration
-    pub fn init(&self, default_location: Option<String>) -> Result<()> {
+    pub fn init(&self, default_location: Option<String>, force: bool) -> Result<()> {
         debug!(
-            "Initializing configuration with default location: {:?}",
-            default_location
+            "Initializing configuration with default location: {:?}, force: {}",
+            default_location, force
         );
+
+        // Check if config file already exists and force is not enabled
+        if self.config_path.exists() && !force {
+            return Err(anyhow!(
+                "Configuration file already exists at {}. Use --force to overwrite.",
+                self.config_path.display()
+            ));
+        }
 
         let config_repo = TomlConfigurationRepository::new();
         let use_case = InitConfigUseCase::new(config_repo);
@@ -298,7 +306,27 @@ impl CliAdapter {
             // Check if it has a clean status
             let status = git_ops.get_status(repo_path)?;
             if !status.is_clean() {
-                return Err(anyhow!("Git repository has uncommitted changes. Please commit or stash your changes before proceeding."));
+                // Run git status to show the user what's going on
+                let git_status_output = std::process::Command::new("git")
+                    .args(["status", "--short"])
+                    .current_dir(repo_path)
+                    .output();
+
+                let mut error_msg = String::from("Git repository has uncommitted changes. Please commit or stash your changes before proceeding.");
+
+                // Add git status output if available
+                if let Ok(output) = git_status_output {
+                    if output.status.success() {
+                        let status_text =
+                            String::from_utf8_lossy(&output.stdout).trim().to_string();
+                        if !status_text.is_empty() {
+                            error_msg.push_str("\n\nGit status:\n");
+                            error_msg.push_str(&status_text);
+                        }
+                    }
+                }
+
+                return Err(anyhow!(error_msg));
             }
         } else {
             debug!("Not a Git repository, skipping status check");

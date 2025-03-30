@@ -72,7 +72,7 @@ impl GitOperations for GitOperationsImpl {
 
     fn is_git_repository(&self, path: &Path) -> Result<bool, DomainError> {
         debug!("Checking if path is a git repository: {}", path.display());
-        
+
         // First, verify the path exists to avoid unhelpful errors
         if !path.exists() {
             warn!("Path does not exist: {}", path.display());
@@ -81,14 +81,14 @@ impl GitOperations for GitOperationsImpl {
                 path.display()
             )));
         }
-        
+
         // Execute the git command with better error handling
         let result = Command::new("git")
             .arg("rev-parse")
             .arg("--is-inside-work-tree")
             .current_dir(path)
             .output();
-            
+
         // Handle the command execution result
         match result {
             Ok(output) => {
@@ -97,20 +97,24 @@ impl GitOperations for GitOperationsImpl {
                     Ok(true)
                 } else {
                     let stderr = String::from_utf8_lossy(&output.stderr);
-                    debug!("Path is not a git repository: {} ({})", path.display(), stderr.trim());
+                    debug!(
+                        "Path is not a git repository: {} ({})",
+                        path.display(),
+                        stderr.trim()
+                    );
                     Ok(false)
                 }
             }
             Err(e) => {
                 warn!("Error executing git command: {}", e);
-                
+
                 // Check if the error is because git is not installed
                 if e.kind() == std::io::ErrorKind::NotFound {
                     return Err(DomainError::GitError(
                         "Git executable not found. Please ensure git is installed and in your PATH.".to_string()
                     ));
                 }
-                
+
                 Err(DomainError::GitError(format!(
                     "Failed to check if path is a git repository: {}",
                     e
