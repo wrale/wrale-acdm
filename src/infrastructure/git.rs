@@ -97,12 +97,9 @@ impl GitOperations for GitOperationsImpl {
         debug!("Checking if path is a git repository: {}", path.display());
 
         // First, verify the path exists to avoid unhelpful errors
-        if !path.exists() {
-            warn!("Path does not exist: {}", path.display());
-            return Err(DomainError::GitError(format!(
-                "Path does not exist: {}",
-                path.display()
-            )));
+        if path.as_os_str().is_empty() || !path.exists() {
+            warn!("Path is empty or does not exist: {}", path.display());
+            return Ok(false); // Return false instead of an error for more graceful handling
         }
 
         // Execute the git command with better error handling
@@ -455,6 +452,20 @@ impl RepositoryFetcher for GitRepositoryFetcher {
         }
 
         debug!("Path extraction completed successfully");
+
+        // Additional logging to help diagnose path issues
+        if !target_path.exists() {
+            warn!(
+                "Target path does not exist after extraction: {}",
+                target_path.display()
+            );
+        } else {
+            debug!(
+                "Target path exists after extraction: {}",
+                target_path.display()
+            );
+        }
+
         Ok(())
     }
 }

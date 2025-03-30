@@ -59,8 +59,8 @@ where
         self.repository_fetcher
             .extract_paths(&temp_dir, &dependency.sparse_paths, &target_path)?;
 
-        // Check if we're in a git repository
-        if self.git_operations.is_git_repository(repo_root)? {
+        // Check if repo_root is valid and is a git repository
+        if repo_root.exists() && self.git_operations.is_git_repository(repo_root)? {
             // Stage all changes
             self.git_operations.stage_all(repo_root)?;
         }
@@ -115,10 +115,11 @@ where
         // Commit changes if a commit message is provided, we're not skipping commits, and we're in a git repository
         if !skip_commit {
             if let Some(message) = commit_message {
-                if self
-                    .dependency_updater
-                    .git_operations
-                    .is_git_repository(repo_root)?
+                if repo_root.exists()
+                    && self
+                        .dependency_updater
+                        .git_operations
+                        .is_git_repository(repo_root)?
                 {
                     self.dependency_updater
                         .git_operations

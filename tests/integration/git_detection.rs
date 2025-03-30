@@ -361,3 +361,36 @@ fn test_git_repository_parent_directory_detection() {
         "Subdirectory should be detected as part of a git repository"
     );
 }
+
+/// Test that non-existent paths are handled gracefully in is_git_repository
+#[test]
+fn test_nonexistent_path_handling() {
+    // Create a GitOperationsImpl instance
+    let git_ops = GitOperationsImpl::new();
+
+    // Create a path that definitely doesn't exist
+    let nonexistent_path = PathBuf::from("/this/path/definitely/does/not/exist");
+
+    // Check that is_git_repository returns false instead of an error
+    let result = git_ops.is_git_repository(&nonexistent_path);
+    assert!(
+        result.is_ok(),
+        "is_git_repository should not error on non-existent paths"
+    );
+    assert!(
+        !result.unwrap(),
+        "is_git_repository should return false for non-existent paths"
+    );
+
+    // Also try with an empty path
+    let empty_path = PathBuf::new();
+    let result = git_ops.is_git_repository(&empty_path);
+    assert!(
+        result.is_ok(),
+        "is_git_repository should not error on empty paths"
+    );
+    assert!(
+        !result.unwrap(),
+        "is_git_repository should return false for empty paths"
+    );
+}
