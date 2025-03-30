@@ -21,6 +21,13 @@ jobs:
     - name: Run tests
       run: make test
 
+    - name: Commit Cargo.lock if changed
+      run: |
+        git diff --exit-code Cargo.lock || (
+          git add Cargo.lock
+          git commit -m "Update Cargo.lock for publishing [skip ci]"
+        )
+
     - name: Publish to crates.io
       run: cargo publish
       env:
