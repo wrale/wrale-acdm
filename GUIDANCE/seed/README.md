@@ -5,9 +5,9 @@ Wrale Agnostic Content Dependency Manager
 
 `wrale-acdm` (Wrale Agnostic Content Dependency Manager) is a proposed open-source tool designed to solve the problem of granular, selective content inclusion from external repositories without the complexity and limitations of Git submodules. Built in Rust with clean architecture principles, it enables teams to pull specific folders or files from external repositories while maintaining a clean project history and minimizing dependency footprint.
 
-**Proposed License:** MIT  
-**Executable:** `acdm`  
-**Primary Platform:** macOS (with cross-platform compatibility in mind)  
+**Proposed License:** MIT
+**Executable:** `acdm`
+**Primary Platform:** macOS (with cross-platform compatibility in mind)
 **Repository:** Not yet created
 
 ## Key Features

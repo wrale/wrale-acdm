@@ -7,19 +7,19 @@ use std::path::PathBuf;
 pub struct Dependency {
     /// Unique identifier for the dependency
     pub name: String,
-    
+
     /// Git repository URL (SSH or HTTPS)
     pub repository_url: String,
-    
+
     /// Git revision (branch, tag, or commit)
     pub revision: String,
-    
+
     /// Repository type (currently only 'git' is supported)
     pub repository_type: RepositoryType,
-    
+
     /// Patterns for selecting specific paths from the repository
     pub sparse_paths: Vec<String>,
-    
+
     /// Target location in the project where content will be placed
     pub target_location: PathBuf,
 }
@@ -52,7 +52,7 @@ pub enum AuthType {
 pub struct Configuration {
     /// Default location for vendored content
     pub default_location: Option<PathBuf>,
-    
+
     /// List of all dependencies
     pub dependencies: Vec<Dependency>,
 }
