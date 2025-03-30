@@ -1,0 +1,44 @@
+[package]
+name = "wrale-acdm"
+version = "0.1.0"
+edition = "2021"
+description = "Wrale Agnostic Content Dependency Manager"
+authors = ["Wrale LTD <contact@wrale.com>"]
+license = "MIT"
+repository = "https://github.com/wrale/wrale-acdm"
+readme = "README.md"
+
+# Binary name will be "acdm" instead of "wrale-acdm"
+[[bin]]
+name = "acdm"
+path = "src/main.rs"
+
+[dependencies]
+# CLI argument parsing
+clap = { version = "4.4", features = ["derive"] }
+# Error handling
+anyhow = "1.0"
+thiserror = "1.0"
+# Configuration 
+toml = "0.8"
+serde = { version = "1.0", features = ["derive"] }
+# Filesystem operations
+walkdir = "2.4"
+tempfile = "3.8"
+# Logging
+log = "0.4"
+env_logger = "0.10"
+# Git operations
+git2 = "0.18"
+# Pattern matching
+glob = "0.3"
+
+[dev-dependencies]
+assert_cmd = "2.0"
+predicates = "3.0"
+mockall = "0.11"
+tempfile = "3.8"
+
+[profile.release]
+lto = true
+codegen-units = 1
