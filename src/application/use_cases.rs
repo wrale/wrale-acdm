@@ -210,13 +210,7 @@ where
 
         // Update all dependencies
         self.dependency_manager
-            .update_all(
-                &dependencies_to_update,
-                repo_root,
-                dto.commit_message.as_deref(),
-                dto.force,
-                dto.skip_commit,
-            )
+            .update_all(&dependencies_to_update, repo_root, dto.force)
             .map_err(|e| anyhow::anyhow!("Failed to update dependencies: {}", e))?;
 
         Ok(())

@@ -59,12 +59,11 @@ impl CliAdapter {
         repository_url: String,
         revision: String,
         target_location: String,
-        skip_commit: bool,
         force: bool,
     ) -> Result<()> {
         debug!(
-            "Adding dependency: name={}, url={}, rev={}, target={}, skip_commit={}",
-            name, repository_url, revision, target_location, skip_commit
+            "Adding dependency: name={}, url={}, rev={}, target={}",
+            name, repository_url, revision, target_location
         );
 
         // Create Git operations and verify clean status
@@ -111,15 +110,7 @@ impl CliAdapter {
             )
             .context("Failed to add dependency")?;
 
-        // Auto-commit changes if not skipping
-        if !skip_commit {
-            // Use the same repo_root we already determined
-            // Auto-commit if in a git repository
-            if git_operations.is_git_repository(&repo_root)? {
-                git_operations.commit(&repo_root, &format!("Add dependency '{}'", name))?;
-                info!("Changes committed successfully");
-            }
-        }
+        info!("Remember to commit your changes manually with 'git add . && git commit -m \"Add dependency {name}\"'");
 
         Ok(())
     }
@@ -129,12 +120,11 @@ impl CliAdapter {
         &self,
         dependency_name: String,
         paths: Vec<String>,
-        skip_commit: bool,
         force: bool,
     ) -> Result<()> {
         debug!(
-            "Including paths for dependency: {}, paths: {:?}, skip_commit={}",
-            dependency_name, paths, skip_commit
+            "Including paths for dependency: {}, paths: {:?}",
+            dependency_name, paths
         );
 
         // Create Git operations and verify clean status
@@ -178,26 +168,7 @@ impl CliAdapter {
             )
             .context("Failed to include paths")?;
 
-        // Auto-commit changes if not skipping
-        if !skip_commit {
-            // Auto-commit if in a git repository - use the same repo_root we already determined
-            if git_operations.is_git_repository(&repo_root)? {
-                let paths_summary = if paths.len() <= 2 {
-                    paths.join(", ")
-                } else {
-                    format!("{} paths", paths.len())
-                };
-
-                git_operations.commit(
-                    &repo_root,
-                    &format!(
-                        "Include {} in dependency '{}'",
-                        paths_summary, dependency_name
-                    ),
-                )?;
-                info!("Changes committed successfully");
-            }
-        }
+        info!("Remember to commit your changes manually with 'git add . && git commit -m \"Include paths for {dependency_name}\"'");
 
         Ok(())
     }
@@ -206,13 +177,11 @@ impl CliAdapter {
     pub fn update_dependencies(
         &self,
         dependencies: Option<Vec<String>>,
-        commit_message: Option<String>,
         force: bool,
-        skip_commit: bool,
     ) -> Result<()> {
         debug!(
-            "Updating dependencies: {:?}, commit_message: {:?}, force: {}, skip_commit: {}",
-            dependencies, commit_message, force, skip_commit
+            "Updating dependencies: {:?}, force: {}",
+            dependencies, force
         );
 
         // Create required components
@@ -298,11 +267,13 @@ impl CliAdapter {
             .execute(UpdateDependenciesDto {
                 config_path: self.config_path.clone(),
                 dependencies: dependencies.clone(),
-                commit_message: if skip_commit { None } else { commit_message },
                 force,
-                skip_commit,
             })
-            .context("Failed to update dependencies")
+            .context("Failed to update dependencies")?;
+
+        info!("Remember to commit your changes manually with 'git add . && git commit -m \"Update dependencies\"'");
+
+        Ok(())
     }
 
     /// Show dependency status
@@ -380,7 +351,7 @@ impl CliAdapter {
         Ok(input.trim().to_lowercase() == "y")
     }
 
-    /// Ensure the Git repository has a clean status
+    /// Ensure the Git repository has a clean status and exists
     fn ensure_clean_git_status(
         &self,
         git_ops: &GitOperationsImpl,
@@ -392,34 +363,33 @@ impl CliAdapter {
         );
 
         // First check if it's a git repository at all
-        if git_ops.is_git_repository(repo_path)? {
-            // Check if it has a clean status
-            let status = git_ops.get_status(repo_path)?;
-            if !status.is_clean() {
-                // Run git status to show the user what's going on
-                let git_status_output = std::process::Command::new("git")
-                    .args(["status", "--short"])
-                    .current_dir(repo_path)
-                    .output();
+        if !git_ops.is_git_repository(repo_path)? {
+            return Err(anyhow!("Directory is not a Git repository. This tool requires operations to be performed within a Git repository."));
+        }
 
-                let mut error_msg = String::from("Git repository has uncommitted changes. Please commit or stash your changes before proceeding.");
+        // Check if it has a clean status
+        let status = git_ops.get_status(repo_path)?;
+        if !status.is_clean() {
+            // Run git status to show the user what's going on
+            let git_status_output = std::process::Command::new("git")
+                .args(["status", "--short"])
+                .current_dir(repo_path)
+                .output();
 
-                // Add git status output if available
-                if let Ok(output) = git_status_output {
-                    if output.status.success() {
-                        let status_text =
-                            String::from_utf8_lossy(&output.stdout).trim().to_string();
-                        if !status_text.is_empty() {
-                            error_msg.push_str("\n\nGit status:\n");
-                            error_msg.push_str(&status_text);
-                        }
+            let mut error_msg = String::from("Git repository has uncommitted changes. Please commit your changes before proceeding or use the --force flag (NOT RECOMMENDED)");
+
+            // Add git status output if available
+            if let Ok(output) = git_status_output {
+                if output.status.success() {
+                    let status_text = String::from_utf8_lossy(&output.stdout).trim().to_string();
+                    if !status_text.is_empty() {
+                        error_msg.push_str("\n\nGit status:\n");
+                        error_msg.push_str(&status_text);
                     }
                 }
-
-                return Err(anyhow!(error_msg));
             }
-        } else {
-            debug!("Not a Git repository, skipping status check");
+
+            return Err(anyhow!(error_msg));
         }
 
         Ok(())

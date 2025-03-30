@@ -12,14 +12,6 @@ use crate::interfaces::cli::CliAdapter;
 pub struct UpdateCommand {
     /// Dependencies to update (all if not specified)
     dependencies: Vec<String>,
-
-    /// Commit message for the update
-    #[clap(short, long)]
-    message: Option<String>,
-
-    /// Skip automatically committing changes
-    #[clap(long)]
-    skip_commit: bool,
 }
 
 impl UpdateCommand {
@@ -40,9 +32,10 @@ impl UpdateCommand {
             Some(self.dependencies.clone())
         };
 
-        adapter.update_dependencies(deps, self.message.clone(), force, self.skip_commit)?;
+        adapter.update_dependencies(deps, force)?;
 
         info!("Dependencies updated successfully");
+        info!("Remember to review and commit your changes with git");
         Ok(())
     }
 }

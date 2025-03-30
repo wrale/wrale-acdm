@@ -37,8 +37,6 @@ mock! {
 mock! {
     pub GitOperationsMock {}
     impl wrale_acdm::domain::repositories::GitOperations for GitOperationsMock {
-        fn stage_all(&self, repo_path: &Path) -> Result<(), DomainError>;
-        fn commit(&self, repo_path: &Path, message: &str) -> Result<(), DomainError>;
         fn is_git_repository(&self, path: &Path) -> Result<bool, DomainError>;
         fn get_status(&self, repo_path: &Path) -> Result<wrale_acdm::domain::repositories::GitStatus, DomainError>;
     }
@@ -88,8 +86,7 @@ fn test_dependency_update_with_mocks() {
         .times(1)
         .returning(|_| Ok(true));
 
-    // Expect stage_all to be called and return success
-    git_ops.expect_stage_all().times(1).returning(|_| Ok(()));
+    // Staging expectations removed as we no longer do staging
 
     // Expect remove_temp_directory to be called and return success
     fs_manager
@@ -134,6 +131,26 @@ fn test_real_command_with_temp_dir() {
     let temp_dir = tempdir().unwrap();
     let config_path = temp_dir.path().join("acdm.toml");
 
+    // Initialize a git repository in the temp directory
+    std::process::Command::new("git")
+        .args(["init"])
+        .current_dir(temp_dir.path())
+        .status()
+        .expect("Failed to initialize git repository");
+
+    // Configure git user for the test repository
+    std::process::Command::new("git")
+        .args(["config", "user.name", "Test User"])
+        .current_dir(temp_dir.path())
+        .status()
+        .expect("Failed to configure git user name");
+
+    std::process::Command::new("git")
+        .args(["config", "user.email", "test@example.com"])
+        .current_dir(temp_dir.path())
+        .status()
+        .expect("Failed to configure git user email");
+
     // Create an initial config file
     fs::write(
         &config_path,
@@ -149,11 +166,32 @@ target = "vendor/example"
     )
     .unwrap();
 
+    // Commit the file to get a clean repository state
+    std::process::Command::new("git")
+        .args(["add", "acdm.toml"])
+        .current_dir(temp_dir.path())
+        .status()
+        .expect("Failed to add file to git");
+
+    // Disable GPG signing for just this test repository (not globally)
+    std::process::Command::new("git")
+        .args(["config", "commit.gpgsign", "false"])
+        .current_dir(temp_dir.path())
+        .status()
+        .expect("Failed to disable GPG signing");
+
+    std::process::Command::new("git")
+        .args(["commit", "-m", "Add initial config"])
+        .current_dir(temp_dir.path())
+        .status()
+        .expect("Failed to commit file");
+
     // Run the include command
     let mut cmd = Command::cargo_bin("acdm").unwrap();
     let output = cmd
         .arg("--config")
         .arg(&config_path)
+        .arg("--force") // Use force flag for testing purposes
         .arg("include")
         .arg("example-dependency")
         .arg("docs/**")

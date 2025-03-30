@@ -48,12 +48,6 @@ impl GitStatus {
 
 /// Interface for Git operations
 pub trait GitOperations {
-    /// Stages all changes in a directory
-    fn stage_all(&self, repo_path: &Path) -> Result<(), DomainError>;
-
-    /// Commits changes with a message
-    fn commit(&self, repo_path: &Path, message: &str) -> Result<(), DomainError>;
-
     /// Checks if a directory is inside a Git repository
     fn is_git_repository(&self, path: &Path) -> Result<bool, DomainError>;
 

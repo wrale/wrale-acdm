@@ -26,9 +26,10 @@ impl<C: ConfigurationRepository> GetDependencyStatusQuery<C> {
             // Join with current directory to get absolute path
             std::env::current_dir()
                 .map_err(|e| {
-                    DomainError::ConfigurationError(
-                        format!("Failed to get current directory: {}", e).into(),
-                    )
+                    DomainError::ConfigurationError(format!(
+                        "Failed to get current directory: {}",
+                        e
+                    ))
                 })?
                 .join(config_path)
         };
@@ -45,9 +46,7 @@ impl<C: ConfigurationRepository> GetDependencyStatusQuery<C> {
         } else {
             // This should rarely happen with absolute paths, but handle it anyway
             std::env::current_dir().map_err(|e| {
-                DomainError::ConfigurationError(
-                    format!("Failed to get current directory: {}", e).into(),
-                )
+                DomainError::ConfigurationError(format!("Failed to get current directory: {}", e))
             })?
         };
 

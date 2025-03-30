@@ -27,9 +27,7 @@ pub struct IncludePathsDto {
 pub struct UpdateDependenciesDto {
     pub config_path: PathBuf,
     pub dependencies: Option<Vec<String>>,
-    pub commit_message: Option<String>,
     pub force: bool,
-    pub skip_commit: bool,
 }
 
 /// DTO for dependency status

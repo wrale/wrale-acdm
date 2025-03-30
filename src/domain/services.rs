@@ -61,8 +61,7 @@ where
 
         // Check if repo_root is valid and is a git repository
         if repo_root.exists() && self.git_operations.is_git_repository(repo_root)? {
-            // Stage all changes
-            self.git_operations.stage_all(repo_root)?;
+            // No staging action needed anymore
         }
 
         // Clean up the temporary directory
@@ -103,29 +102,11 @@ where
         &self,
         dependencies: &[Dependency],
         repo_root: &Path,
-        commit_message: Option<&str>,
         _force: bool, // Unused but necessary for API compatibility
-        skip_commit: bool,
     ) -> Result<(), DomainError> {
         // Update each dependency
         for dependency in dependencies {
             self.dependency_updater.update(dependency, repo_root)?;
-        }
-
-        // Commit changes if a commit message is provided, we're not skipping commits, and we're in a git repository
-        if !skip_commit {
-            if let Some(message) = commit_message {
-                if repo_root.exists()
-                    && self
-                        .dependency_updater
-                        .git_operations
-                        .is_git_repository(repo_root)?
-                {
-                    self.dependency_updater
-                        .git_operations
-                        .commit(repo_root, message)?;
-                }
-            }
         }
 
         Ok(())
